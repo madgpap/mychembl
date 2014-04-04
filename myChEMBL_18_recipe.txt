@@ -1,0 +1,181 @@
+## myChEMBL_18 VM Ubuntu 12.04
+
+
+## Useful links
+# https://code.google.com/p/rdkit/wiki/BuildingWithCmake
+# https://code.google.com/p/rdkit/wiki/BuildingTheCartridge
+# http://sourceforge.net/p/rdkit/code/2472/
+
+## RDKit and system requirements
+sudo apt-get install ipython
+sudo apt-get install ipython-notebook
+sudo apt-get install ipython-qtconsole
+sudo apt-get install libboost-all-dev
+sudo apt-get install postgresql
+sudo apt-get install postgresql-server-dev-all
+sudo apt-get install postgresql-doc
+sudo apt-get install postgresql-contrib
+sudo apt-get install flex
+sudo apt-get install bison
+sudo apt-get install g++
+sudo apt-get install cmake
+sudo apt-get install unzip
+sudo apt-get install subversion
+sudo apt-get install git
+
+## New postgres user
+sudo su postgres  
+createuser chembl
+exit
+
+## Cutting-edge RDKit source code from GitHub
+# svn checkout svn://svn.code.sf.net/p/rdkit/code/trunk rdkit-code
+# svn checkout svn://svn.code.sf.net/p/rdkit/code/tags/Release_2013_03_2 rdkit-code
+git clone https://github.com/rdkit/rdkit
+
+## Python modules
+sudo apt-get install python-numpy
+sudo apt-get install python-scipy
+sudo apt-get install python-matplotlib
+sudo apt-get install python-pip
+sudo apt-get install python-psycopg2
+sudo apt-get install python-imaging-tk
+sudo apt-get install python-pandas
+sudo apt-get install python-networkx
+sudo apt-get install python-sklearn
+
+sudo pip install -U ipython
+sudo pip install -U jinja2
+sudo pip install -U scikit-learn
+sudo pip install -U tornado
+sudo pip install -U pandas #will update numpy too
+
+## RDKit ENV variables
+export RDBASE=$HOME/rdkit
+export LD_LIBRARY_PATH=$RDBASE/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$RDBASE:$PYTHONPATH
+
+## Download INCHI library
+cd $RDBASE/External/INCHI-API
+bash download-inchi.sh
+
+## Build RDKit
+cd $RDBASE
+mkdir build
+cd build
+cmake -DRDK_BUILD_INCHI_SUPPORT=ON ..
+make -j4 install
+ctest
+# 100% tests passed, 0 tests failed out of 77
+# Total Test time (real) =  74.73 sec
+
+## Build RDKit Cartridge
+cd $RDBASE/Code/PgSQL/rdkit
+make
+sudo make install
+make installcheck
+
+============== dropping database "contrib_regression" ==============
+NOTICE:  database "contrib_regression" does not exist, skipping
+DROP DATABASE
+============== creating database "contrib_regression" ==============
+CREATE DATABASE
+ALTER DATABASE
+============== running regression test queries        ==============
+test rdkit-91                 ... ok
+test props                    ... ok
+test btree                    ... ok
+test molgist                  ... ok
+test bfpgist-91               ... ok
+test sfpgist                  ... ok
+test slfpgist                 ... ok
+test fps                      ... ok
+
+=====================
+ All 8 tests passed. 
+=====================
+
+createdb test
+psql test
+
+test=# create extension "rdkit";
+CREATE EXTENSION
+test=# show rdkit.tanimoto_threshold;
+ rdkit.tanimoto_threshold 
+--------------------------
+ 0.5
+(1 row)
+
+test=# select 'c1ccccc1O'::mol;
+    mol    
+-----------
+ Oc1ccccc1
+(1 row)
+
+## Install ChEMBLdb
+wget ftp://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/releases/chembl_18/chembl_18_postgresql.tar.gz
+tar zxf chembl_18_postgresql.tar.gz
+
+createdb chembl_18
+
+cd chembl_18_postgresql/
+psql chembl_18 < chembl_18.pgdump.sql
+
+sudo sysctl -w kernel.shmmax=2147483648
+
+sudo /sbin/iptables -A INPUT -i eth0 -p tcp --destination-port 5432 -j ACCEPT
+
+sudo vim /etc/postgresql/9.1/main/postgresql.conf
+# listen_addresses = '*'
+# fsync = off                             # turns forced synchronization on or off
+# synchronous_commit = off                # immediate fsync at commit
+# full_page_writes = off                  # recover from partial page writes
+
+# shared_buffers = 1024MB
+# work_mem = 128MB
+
+sudo vim /etc/postgresql/9.1/main/pg_hba.conf 
+# add line: host    all             all             .ebi.ac.uk              trust
+# Change this: local   all             all                                     peer
+# to this: local   all             all                                     trust
+
+sudo service postgresql restart
+
+## Build RDKit Indices
+
+psql chembl_18
+create extension rdkit;
+
+
+psql -d chembl_18 -a -f indexes.sql
+
+## Benchmarking
+psql -c "select count(*) from mols_rdkit where m @>'O=C1OC2=CC=CC=C2C=C1';" chembl_18
+# count 
+#-------
+# 11026
+#Time: 2240.240 ms
+
+psql -c "select count(*) from mols_rdkit where m@>'O=C(NC1=CC=CC=C1)C1=CC2=C(OC1=O)C=CC=C2';" chembl_18
+# count 
+#-------
+#   223
+#Time: 89.791 ms
+
+psql -c "select count(*) from mols_rdkit where m @>'c1ccc2c(c1)ccc1ccccc21';" chembl_18
+# count 
+#-------
+#  1392
+#Time: 5143.349 ms
+
+## PHP-APACHE stuff here: TODO for Mark
+
+# Add the following line to /etc/php5/apache2/php.ini
+;
+extension=/usr/lib/php5/20090626/pgsql.so
+;
+
+# Populate table of rendered structure images
+python imagesRDKit.py # This script is available in the home folder
+
+
