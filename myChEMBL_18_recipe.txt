@@ -142,6 +142,9 @@ sudo vim /etc/postgresql/9.1/main/pg_hba.conf
 
 sudo service postgresql restart
 
+sudo vim /etc/sysctl.conf
+# add this line kernel.shmmax = 2147483648
+
 ## New postgres read-only user
 createuser -P mychembl
 psql --username=chembl chembl_18
@@ -175,6 +178,7 @@ psql -c "select count(*) from mols_rdkit where m @>'c1ccc2c(c1)ccc1ccccc21';" ch
 #  1392
 #Time: 5143.349 ms
 
+
 ## PHP-APACHE stuff here: TODO for Mark
 
 # Add the following line to /etc/php5/apache2/php.ini
@@ -182,7 +186,6 @@ psql -c "select count(*) from mols_rdkit where m @>'c1ccc2c(c1)ccc1ccccc21';" ch
 extension=/usr/lib/php5/20090626/pgsql.so
 ;
 
-# Populate table of rendered structure images
-python imagesRDKit.py # This script is available in the home folder
+
 
 
