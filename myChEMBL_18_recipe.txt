@@ -162,21 +162,23 @@ psql -d chembl_18 -a -f indexes.sql
 ## Benchmarking
 psql -c "select count(*) from mols_rdkit where m @>'O=C1OC2=CC=CC=C2C=C1';" chembl_18
 # count 
-#-------
-# 11026
-#Time: 2240.240 ms
+# -------
+# 11886
+# (1 row)
+# Time: 848.260 ms
+
 
 psql -c "select count(*) from mols_rdkit where m@>'O=C(NC1=CC=CC=C1)C1=CC2=C(OC1=O)C=CC=C2';" chembl_18
 # count 
-#-------
-#   223
-#Time: 89.791 ms
+# -------
+# 226
+# Time: 61.439 ms
 
 psql -c "select count(*) from mols_rdkit where m @>'c1ccc2c(c1)ccc1ccccc21';" chembl_18
 # count 
-#-------
-#  1392
-#Time: 5143.349 ms
+# -------
+# 1546
+# Time: 8532.081 ms
 
 
 ## PHP-APACHE stuff here: TODO for Mark
