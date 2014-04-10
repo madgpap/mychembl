@@ -139,7 +139,14 @@ sudo vim /etc/postgresql/9.1/main/pg_hba.conf
 # Change this: local   all             all                                     peer
 # to this: local   all             all                                     trust
 
+
 sudo service postgresql restart
+
+## New postgres read-only user
+createuser -P mychembl
+psql --username=chembl chembl_18
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO mychembl;
+\q
 
 ## Build RDKit Indices
 
