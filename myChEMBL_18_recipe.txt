@@ -49,6 +49,15 @@ sudo pip install -U jinja2
 sudo pip install -U scikit-learn
 sudo pip install -U tornado
 sudo pip install -U pandas #will update numpy too
+sudo pip install -U requests
+
+## Create Notebook profile
+ipython profile create mychembl
+ipython notebook --profile=mychembl
+
+## Download target prediction models
+wget ftp://ftp.ebi.ac.uk/pub/databases/chembl/target_predictions/chembl_18_models.tar.gz
+tar -zxf chembl_18_models.tar.gz
 
 ## RDKit ENV variables
 export RDBASE=$HOME/rdkit
@@ -151,11 +160,10 @@ psql --username=chembl chembl_18
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO mychembl;
 \q
 
-## Build RDKit Indices
 
+## Build RDKit Indices
 psql chembl_18
 create extension rdkit;
-
 
 psql -d chembl_18 -a -f indexes.sql
 
@@ -164,7 +172,6 @@ psql -c "select count(*) from mols_rdkit where m @>'O=C1OC2=CC=CC=C2C=C1';" chem
 # count 
 # -------
 # 11886
-# (1 row)
 # Time: 848.260 ms
 
 
@@ -187,7 +194,6 @@ psql -c "select count(*) from mols_rdkit where m @>'c1ccc2c(c1)ccc1ccccc21';" ch
 ;
 extension=/usr/lib/php5/20090626/pgsql.so
 ;
-
 
 
 
