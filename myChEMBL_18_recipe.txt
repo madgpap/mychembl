@@ -20,7 +20,6 @@ sudo apt-get install bison
 sudo apt-get install g++
 sudo apt-get install cmake
 sudo apt-get install unzip
-sudo apt-get install subversion
 sudo apt-get install git
 
 ## New postgres user
@@ -32,6 +31,9 @@ exit
 # svn checkout svn://svn.code.sf.net/p/rdkit/code/trunk rdkit-code
 # svn checkout svn://svn.code.sf.net/p/rdkit/code/tags/Release_2013_03_2 rdkit-code
 git clone https://github.com/rdkit/rdkit
+cd rdkit/
+git checkout tags/Release_2014_03_1
+cd
 
 ## Python modules
 sudo apt-get install python-numpy
