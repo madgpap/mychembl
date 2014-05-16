@@ -53,10 +53,6 @@ sudo pip install -U tornado
 sudo pip install -U pandas #will update numpy too
 sudo pip install -U requests
 
-## Create Notebook profile
-ipython profile create mychembl
-ipython notebook --profile=mychembl
-
 ## Download target prediction models
 wget ftp://ftp.ebi.ac.uk/pub/databases/chembl/target_predictions/chembl_18_models.tar.gz
 tar -zxf chembl_18_models.tar.gz
@@ -162,6 +158,10 @@ psql --username=chembl chembl_18
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO mychembl;
 \q
 
+## Create Notebook profile
+ipython profile create mychembl
+ipython notebook --profile=mychembl
+exit
 
 ## Build RDKit Indices
 psql chembl_18
