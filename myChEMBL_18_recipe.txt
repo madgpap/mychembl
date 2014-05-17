@@ -132,7 +132,20 @@ sudo sysctl -w kernel.shmmax=2147483648
 
 sudo /sbin/iptables -A INPUT -i eth0 -p tcp --destination-port 5432 -j ACCEPT
 
-sudo vim /etc/postgresql/9.1/main/postgresql.conf
+cd /home/chembl/src/mychembl
+sudo git pull
+
+sudo cp src/mychembl/configuration/mychembl_postgresql.conf /etc/postgresql/9.1/main/
+sudo mv /etc/postgresql/9.1/main/mychembl_postgresql.conf /etc/postgresql/9.1/main/postgresql.conf 
+
+sudo cp src/mychembl/configuration/mychembl_pg_hba.conf /etc/postgresql/9.1/main/
+sudo mv /etc/postgresql/9.1/main/mychembl_pg_hba.conf /etc/postgresql/9.1/main/pg_hba.conf 
+
+sudo cp src/mychembl/configuration/mychembl_sysctl.conf /etc/
+sudo mv /etc/mychembl_sysctl.conf /etc/sysctl.conf
+
+
+# sudo vim /etc/postgresql/9.1/main/postgresql.conf
 # listen_addresses = '*'
 # fsync = off                             # turns forced synchronization on or off
 # synchronous_commit = off                # immediate fsync at commit
@@ -141,7 +154,7 @@ sudo vim /etc/postgresql/9.1/main/postgresql.conf
 # shared_buffers = 1024MB
 # work_mem = 128MB
 
-sudo vim /etc/postgresql/9.1/main/pg_hba.conf 
+# sudo vim /etc/postgresql/9.1/main/pg_hba.conf 
 # add line: host    all             all             .ebi.ac.uk              trust
 # Change this: local   all             all                                     peer
 # to this: local   all             all                                     trust
@@ -149,7 +162,7 @@ sudo vim /etc/postgresql/9.1/main/pg_hba.conf
 
 sudo service postgresql restart
 
-sudo vim /etc/sysctl.conf
+# sudo vim /etc/sysctl.conf
 # add this line kernel.shmmax = 2147483648
 
 ## New postgres read-only user
@@ -158,14 +171,25 @@ psql --username=chembl chembl_18
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO mychembl;
 \q
 
+
 ## Create Notebook profile
+cd
+mkdir notebooks
 ipython profile create mychembl
 ipython notebook --profile=mychembl
 exit
 
+cp src/mychembl/configuration/mychembl_ipython_notebook_config.py ~/.ipython/profile_mychembl/
+mv ~/.ipython/profile_mychembl/mychembl_ipython_notebook_config.py ~/.ipython/profile_mychembl/ipython_notebook_config.py
+
+sudo cp src/mychembl/configuration/mychembl_interfaces /etc/network/
+sudo mv /etc/network/interfaces /etc/network/interfaces.orig
+sudo mv /etc/network/mychembl_interfaces /etc/network/interfaces
+
 ## Build RDKit Indices
 psql chembl_18
 create extension rdkit;
+\q
 
 psql -d chembl_18 -a -f indexes.sql
 
